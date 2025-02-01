@@ -207,8 +207,8 @@
 		$sql .= " invoice_paid_method_ref ";
 		$sql .= "from v_invoices ";
 		$sql .= "where invoice_uuid = :invoice_uuid ";
-		//$sql .= "and domain_uuid = :domain_uuid ";
-		//$parameters['domain_uuid'] = $_SESSION['domain_uuid'];
+		$sql .= "and domain_uuid = :domain_uuid ";
+		$parameters['domain_uuid'] = $_SESSION['domain_uuid'];
 		$parameters['invoice_uuid'] = $invoice_uuid;
 		$row = $database->select($sql, $parameters, 'row');
 		if (is_array($row) && @sizeof($row) != 0) {
@@ -286,6 +286,14 @@
 		$contact_uuid_to = $_REQUEST['contact_uuid'];
 	}
 
+//get the contact application path
+	if (file_exists(dirname(__DIR__, 2) . '/core/contacts/app_config.php')) {
+		$app_path = 'core';
+	}
+	if (file_exists(dirname(__DIR__, 2) . '/app/contacts/app_config.php')) {
+		$app_path = 'app';
+	}
+
 //show the header
 	require_once "resources/header.php";
 
@@ -315,10 +323,10 @@
 			}
 		};
 		if (search) {
-			xhttp.open("GET", "/app/contacts/contact_json.php?search="+search, true);
+			xhttp.open("GET", "/<?php echo $app_path; ?>/contacts/contact_json.php?search="+search, true);
 		}
 		else {
-			xhttp.open("GET", "/app/contacts/contact_json.php", true);
+			xhttp.open("GET", "/<?php echo $app_path; ?>/contacts/contact_json.php", true);
 		}
 		xhttp.send();
 	}
@@ -405,7 +413,7 @@
 	*/
 	echo "<br />\n";
 	echo $text['description-contact_uuid_from']." \n";
-	echo "<a href='".PROJECT_PATH."/app/contacts/contact_edit.php?id=".escape($contact_uuid_from)."'>".$text['button-view']."</a>\n";
+	echo "<a href='".PROJECT_PATH."/".$app_path."/contacts/contact_edit.php?id=".escape($contact_uuid_from)."'>".$text['button-view']."</a>\n";
 	echo "</td>\n";
 	echo "</tr>\n";
 
@@ -447,7 +455,7 @@
 	*/
 	echo "<br />\n";
 	echo $text['description-contact_uuid_to']." \n";
-	echo "<a href='".PROJECT_PATH."/app/contacts/contact_edit.php?id=".escape($contact_uuid_to)."'>".$text['button-view']."</a>\n";
+	echo "<a href='".PROJECT_PATH."/".$app_path."/contacts/contact_edit.php?id=".escape($contact_uuid_to)."'>".$text['button-view']."</a>\n";
 	echo "</td>\n";
 	echo "</tr>\n";
 

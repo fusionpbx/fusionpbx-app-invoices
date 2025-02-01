@@ -93,7 +93,7 @@
 	$sql .= "and contact_uuid = :contact_uuid_from ";
 	$parameters['domain_uuid'] = $_SESSION['domain_uuid'];
 	$parameters['contact_uuid_from'] = $contact_uuid_from;
-	$result = $database->select($sql, $parameters ?? '', 'all');
+	$row = $database->select($sql, $parameters ?? '', 'row');
 	if (!empty($row)) {
 		$from_contact_organization = $row["contact_organization"];
 		$from_contact_name_given = $row["contact_name_given"];
@@ -120,6 +120,11 @@
 	}
 	unset($parameters);
 
+//add the logo
+	//$pdf->Image('/var/www/fusionpbx/themes/default/images/logo.png',8,8,40);
+	//$pdf->SetY(10);
+
+//add the from contact information
 	$pdf->SetY(10);
 	$pdf->SetFont('Arial','B',9);
 	if (strlen($from_contact_organization) > 0) {
@@ -200,7 +205,7 @@
 
 //invoice info
 	$pdf->SetY(10);
-	$pdf->Cell(150,10,'');
+	$pdf->Cell(145,10,'');
 	$pdf->SetFont('Arial','',23);
 	if ($type == "quote") {
 		$pdf->Cell(40,10,$text['label-quote']);
@@ -210,15 +215,15 @@
 	}
 	$pdf->Ln();
 	$pdf->SetFont('Arial','',9);
-	$pdf->Cell(150,5,'');
-	$pdf->Cell(40,5,$text['label-invoice_date'].' '.$invoice_date);
+	$pdf->Cell(145,5,'');
+	$pdf->Cell(40,5,$text['label-invoice_date'].': '.$invoice_date);
 	$pdf->Ln();
-	$pdf->Cell(150,5,'');
-	$pdf->Cell(40,5,$text['label-invoice_number'].' '.$invoice_number);
+	$pdf->Cell(145,5,'');
+	$pdf->Cell(40,5,$text['label-invoice_number'].': '.$invoice_number);
 	$pdf->Ln();
 	if (strlen($invoice_purchase_order_number) > 0) {
-		$pdf->Cell(150,5,'');
-		$pdf->Cell(40,5,$text['label-invoice_purchase_order_number'].' '.$invoice_purchase_order_number);
+		$pdf->Cell(145,5,'');
+		$pdf->Cell(40,5,$text['label-invoice_purchase_order_number'].': '.$invoice_purchase_order_number);
 		$pdf->Ln();
 	}
 
