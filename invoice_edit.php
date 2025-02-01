@@ -17,7 +17,7 @@
 
 	The Initial Developer of the Original Code is
 	Mark J Crane <markjcrane@fusionpbx.com>
-	Portions created by the Initial Developer are Copyright (C) 2008-2023
+	Portions created by the Initial Developer are Copyright (C) 2008-2025
 	the Initial Developer. All Rights Reserved.
 
 	Contributor(s):
@@ -40,6 +40,9 @@
 //add multi-lingual support
 	$language = new text;
 	$text = $language->get();
+
+//connect to the database
+	$database = database::new();
 
 //action add or update
 	if (is_uuid($_REQUEST["id"])) {
@@ -207,7 +210,6 @@
 		//$sql .= "and domain_uuid = :domain_uuid ";
 		//$parameters['domain_uuid'] = $_SESSION['domain_uuid'];
 		$parameters['invoice_uuid'] = $invoice_uuid;
-		$database = new database;
 		$row = $database->select($sql, $parameters, 'row');
 		if (is_array($row) && @sizeof($row) != 0) {
 			$invoice_uuid = $row["invoice_uuid"];
@@ -276,7 +278,7 @@
 		$row = $database->select($sql, $parameters, 'row');
 		$invoice_number = $row['invoice_number'] + 1;
 		$contact_uuid_from = $row['contact_uuid_from'];
-		unset ($prep_statement);
+		unset ($parameters);
 	}
 
 //set the contact 'to' when adding an invoice
@@ -541,4 +543,5 @@
 
 //include the footer
 	require_once "resources/footer.php";
+
 ?>

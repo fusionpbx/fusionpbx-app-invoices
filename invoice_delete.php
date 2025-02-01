@@ -17,7 +17,7 @@
 
 	The Initial Developer of the Original Code is
 	Mark J Crane <markjcrane@fusionpbx.com>
-	Portions created by the Initial Developer are Copyright (C) 2008-2023
+	Portions created by the Initial Developer are Copyright (C) 2008-2025
 	the Initial Developer. All Rights Reserved.
 
 	Contributor(s):
@@ -41,25 +41,28 @@
 	$language = new text;
 	$text = $language->get();
 
+//connect to the database
+	$database = database::new();
+
 //get the id
 	if (count($_GET) > 0) {
-		$id = check_str($_GET["id"]);
-		$contact_uuid = check_str($_GET["contact_uuid"]);
-		$back = check_str($_GET["back"]);
+		$id = $_GET["id"];
+		$contact_uuid = $_GET["contact_uuid"];
+		$back = $_GET["back"];
 	}
 
 //delete invoice
-	if (strlen($id )> 0) {
+	if (!empty($id) && is_uuid($id)) {
 		$sql = "delete from v_invoices ";
-		$sql .= "where domain_uuid = '$domain_uuid' ";
-		$sql .= "and invoice_uuid = '$id' ";
-		$prep_statement = $db->prepare(check_sql($sql));
-		$prep_statement->execute();
-		unset($sql);
+		$sql .= "where domain_uuid = :domain_uuid ";
+		$sql .= "and invoice_uuid = :invoice_uuid ";
+		$parameters['domain_uuid'] = $_SESSION['domain_uuid'];
+		$parameters['invoice_uuid'] = $id;
+		$database->execute($sql, $parameters);
 	}
 
 //redirect the user
 	$_SESSION['message'] = $text['message-delete'];
 	header("Location: ".(($back != '') ? $back : "invoices.php?id=".$contact_uuid));
-	exit;
+
 ?>

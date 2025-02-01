@@ -17,7 +17,7 @@
 
 	The Initial Developer of the Original Code is
 	Mark J Crane <markjcrane@fusionpbx.com>
-	Portions created by the Initial Developer are Copyright (C) 2008-2023
+	Portions created by the Initial Developer are Copyright (C) 2008-2025
 	the Initial Developer. All Rights Reserved.
 
 	Contributor(s):
@@ -41,6 +41,9 @@
 	$language = new text;
 	$text = $language->get();
 
+//connect to the database
+	$database = database::new();
+
 //action invoice_uuid
 	if (isset($_REQUEST["id"])) {
 		$invoice_uuid = check_str($_REQUEST["id"]);
@@ -49,14 +52,14 @@
 
 //get the invoice details
 	$sql = "select * from v_invoices ";
-	$sql .= "where domain_uuid = '$domain_uuid' ";
-	$sql .= "and invoice_uuid = '$invoice_uuid' ";
+	$sql .= "where domain_uuid = :domain_uuid ";
+	$sql .= "and invoice_uuid = :invoice_uuid ";
 	$sql .= "order by invoice_uuid desc ";
 	$sql .= "limit 1 ";
-	$prep_statement = $db->prepare(check_sql($sql));
-	if ($prep_statement) {
-		$prep_statement->execute();
-		$row = $prep_statement->fetch();
+	$parameters['domain_uuid'] = $_SESSION['domain_uuid'];
+	$parameters['invoice_uuid'] = $invoice_uuid;
+	$row = $database->select($sql, $parameters ?? '', 'row');
+	if (!empty($row)) {
 		$invoice_number = $row['invoice_number'];
 		$contact_uuid_from = $row['contact_uuid_from'];
 		$contact_uuid_to = $row['contact_uuid_to'];
@@ -64,8 +67,8 @@
 		$invoice_purchase_order_number = $row['invoice_purchase_order_number'];
 		$invoice_currency = $row['invoice_currency'];
 		$invoice_note = $row['invoice_note'];
-		unset ($prep_statement);
 	}
+	unset($sql, $parameters);
 
 //set the default currency
 	if (strlen($invoice_currency) == 0) {
@@ -86,28 +89,27 @@
 
 //get contact from name
 	$sql = "select * from v_contacts ";
-	$sql .= "where domain_uuid = '$domain_uuid' ";
-	$sql .= "and contact_uuid = '$contact_uuid_from' ";
-	$prep_statement = $db->prepare(check_sql($sql));
-	$prep_statement->execute();
-	$result = $prep_statement->fetchAll(PDO::FETCH_NAMED);
-	foreach ($result as &$row) {
+	$sql .= "where domain_uuid = :domain_uuid ";
+	$sql .= "and contact_uuid = :contact_uuid_from ";
+	$parameters['domain_uuid'] = $_SESSION['domain_uuid'];
+	$parameters['contact_uuid_from'] = $contact_uuid_from;
+	$result = $database->select($sql, $parameters ?? '', 'all');
+	if (!empty($row)) {
 		$from_contact_organization = $row["contact_organization"];
 		$from_contact_name_given = $row["contact_name_given"];
 		$from_contact_name_family = $row["contact_name_family"];
-		break; //limit to 1 row
 	}
-	unset ($prep_statement);
+	unset($parameters);
 
 //get contact from address
 	$sql = "select * from v_contact_addresses ";
-	$sql .= "where domain_uuid = '$domain_uuid' ";
-	$sql .= "and contact_uuid = '$contact_uuid_from' ";
+	$sql .= "where domain_uuid = :domain_uuid ";
+	$sql .= "and contact_uuid = :contact_uuid_from ";
 	$sql .= "order by address_primary desc ";
-	$prep_statement = $db->prepare(check_sql($sql));
-	$prep_statement->execute();
-	$result = $prep_statement->fetchAll(PDO::FETCH_NAMED);
-	foreach ($result as &$row) {
+	$parameters['domain_uuid'] = $_SESSION['domain_uuid'];
+	$parameters['contact_uuid_from'] = $contact_uuid_from;
+	$row = $database->select($sql, $parameters ?? '', 'row');
+	if (!empty($row)) {
 		$from_address_type = $row["address_type"];
 		$from_address_street = $row["address_street"];
 		$from_address_extended = $row["address_extended"];
@@ -115,9 +117,9 @@
 		$from_address_region = $row["address_region"];
 		$from_address_postal_code = $row["address_postal_code"];
 		$from_address_country = $row["address_country"];
-		break; //limit to 1 row
 	}
-	unset ($prep_statement);
+	unset($parameters);
+
 	$pdf->SetY(10);
 	$pdf->SetFont('Arial','B',9);
 	if (strlen($from_contact_organization) > 0) {
@@ -139,26 +141,26 @@
 
 //get contact to name
 	$sql = "select * from v_contacts ";
-	$sql .= "where domain_uuid = '$domain_uuid' ";
-	$sql .= "and contact_uuid = '$contact_uuid_to' ";
-	$prep_statement = $db->prepare(check_sql($sql));
-	$prep_statement->execute();
-	$result = $prep_statement->fetchAll(PDO::FETCH_NAMED);
-	foreach ($result as &$row) {
+	$sql .= "where domain_uuid = :domain_uuid ";
+	$sql .= "and contact_uuid = :contact_uuid_to ";
+	$parameters['domain_uuid'] = $_SESSION['domain_uuid'];
+	$parameters['contact_uuid_to'] = $contact_uuid_to;
+	$row = $database->select($sql, $parameters ?? '', 'row');
+	if (!empty($row)) {
 		$to_contact_organization = $row["contact_organization"];
 		$to_contact_name_given = $row["contact_name_given"];
 		$to_contact_name_family = $row["contact_name_family"];
 	}
-	unset ($prep_statement);
+	unset($parameters);
 
 //get contact to address
 	$sql = "select * from v_contact_addresses ";
-	$sql .= "where domain_uuid = '$domain_uuid' ";
-	$sql .= "and contact_uuid = '$contact_uuid_to' ";
-	$prep_statement = $db->prepare(check_sql($sql));
-	$prep_statement->execute();
-	$result = $prep_statement->fetchAll(PDO::FETCH_NAMED);
-	foreach ($result as &$row) {
+	$sql .= "where domain_uuid = :domain_uuid ";
+	$sql .= "and contact_uuid = :contact_uuid_to ";
+	$parameters['domain_uuid'] = $_SESSION['domain_uuid'];
+	$parameters['contact_uuid_to'] = $contact_uuid_to;
+	$row = $database->select($sql, $parameters ?? '', 'row');
+	if (!empty($row)) {
 		$to_address_type = $row["address_type"];
 		$to_address_street = $row["address_street"];
 		$to_address_extended = $row["address_extended"];
@@ -167,9 +169,8 @@
 		$to_address_postal_code = $row["address_postal_code"];
 		$to_address_country = $row["address_country"];
 		$to_address_description = $row["address_description"];
-		break; //limit to 1 row
 	}
-	unset ($prep_statement);
+	unset ($parameters);
 	$pdf->SetY(40);
 	$pdf->SetFont('Arial','B',9);
 	if (strlen($to_contact_organization) > 0) {
@@ -202,7 +203,7 @@
 	$pdf->Cell(150,10,'');
 	$pdf->SetFont('Arial','',23);
 	if ($type == "quote") {
-		$pdf->Cell(40,10,$text['label-quote']);	
+		$pdf->Cell(40,10,$text['label-quote']);
 	}
 	else {
 		$pdf->Cell(40,10,$text['label-invoice']);
@@ -260,14 +261,15 @@
 
 //itemized list
 	$sql = "select * from v_invoice_items ";
-	$sql .= "where domain_uuid = '$domain_uuid' ";
-	$sql .= "and invoice_uuid = '$invoice_uuid' ";
-	$prep_statement = $db->prepare(check_sql($sql));
-	$prep_statement->execute();
-	$result = $prep_statement->fetchAll(PDO::FETCH_NAMED);
+	$sql .= "where domain_uuid = :domain_uuid ";
+	$sql .= "and invoice_uuid = :invoice_uuid ";
+	$parameters['domain_uuid'] = $_SESSION['domain_uuid'];
+	$parameters['invoice_uuid'] = $invoice_uuid;
+	$row = $database->select($sql, $parameters ?? '', 'row');
+
 	$fill = false;
 	$total = 0;
-	foreach ($result as &$row) {
+	if (!empty($row)) {
 		$item_qty = $row["item_qty"];
 		$item_desc = $row["item_desc"];
 		//$item_desc = str_replace("\n", "<br />", $item_desc);

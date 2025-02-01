@@ -1,7 +1,7 @@
 <?php
 /* $Id$ */
 /*
-	Copyright (C) 2008-2013 Mark J Crane
+	Copyright (C) 2008-2025 Mark J Crane
 	All rights reserved.
 
 	Redistribution and use in source and binary forms, with or without
@@ -41,29 +41,32 @@
 
 //get the http variables
 	if (count($_GET) > 0) {
-		$id = check_str($_GET["id"]);
-		$invoice_uuid = check_str($_GET["invoice_uuid"]);
-		$contact_uuid = check_str($_GET["contact_uuid"]);
-		$back = check_str($_GET["back"]);
+		$id = $_GET["id"];
+		$invoice_uuid = $_GET["invoice_uuid"];
+		$contact_uuid = $_GET["contact_uuid"];
+		$back = $_GET["back"];
 	}
 
 //add multi-lingual support
 	$language = new text;
 	$text = $language->get();
 
+//connect to the database
+	$database = database::new();
+
 //delete invoice_item
-	if (strlen($id) > 0) {
-			$sql = "delete from v_invoice_items ";
-			$sql .= "where domain_uuid = '$domain_uuid' ";
-			$sql .= "and invoice_item_uuid = '$id' ";
-			$prep_statement = $db->prepare(check_sql($sql));
-			$prep_statement->execute();
-			unset($sql);
+	if (!empty($id) && is_uuid($id)) {
+		$sql = "delete from v_invoice_items ";
+		$sql .= "where domain_uuid = :domain_uuid ";
+		$sql .= "and invoice_item_uuid = :invoice_item_uuid ";
+		$parameters['domain_uuid'] = $_SESSION['domain_uuid'];
+		$parameters['invoice_item_uuid'] = $id;
+		$database->execute($sql, $parameters);
 	}
 
 //redirect the user
 	$_SESSION['message'] = $text['message-delete'];
 	$back = ($back != '') ? "&back=".$back : null;
 	header("Location: invoice_edit.php?id=".$invoice_uuid."&contact_uuid=".$contact_uuid.$back);
-	exit;
+
 ?>

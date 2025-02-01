@@ -1,7 +1,7 @@
 <?php
 /* $Id$ */
 /*
-	Copyright (C) 2008-2013 Mark J Crane
+	Copyright (C) 2008-2025 Mark J Crane
 	All rights reserved.
 
 	Redistribution and use in source and binary forms, with or without
@@ -29,7 +29,7 @@
 //includes files
 	require_once dirname(__DIR__, 2) . "/resources/require.php";
 	require_once "resources/check_auth.php";
-	
+
 //check permissionss
 	if (permission_exists('invoice_item_add') || permission_exists('invoice_item_edit')) {
 		//access granted
@@ -42,6 +42,9 @@
 //add multi-lingual support
 	$language = new text;
 	$text = $language->get();
+
+//connect to the database
+	$database = database::new();
 
 //action add or update
 	if (isset($_REQUEST["id"])) {
@@ -58,7 +61,7 @@
 	if (strlen(count($_REQUEST)) > 0) {
 		$contact_uuid = $_REQUEST["contact_uuid"];
 		$invoice_uuid = $_REQUEST["invoice_uuid"];
-	}	
+	}
 	if (count($_POST) > 0) {
 		$item_qty = $_POST["item_qty"];
 		$item_desc = $_POST["item_desc"];

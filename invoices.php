@@ -17,7 +17,7 @@
 
 	The Initial Developer of the Original Code is
 	Mark J Crane <markjcrane@fusionpbx.com>
-	Portions created by the Initial Developer are Copyright (C) 2008-2023
+	Portions created by the Initial Developer are Copyright (C) 2008-2025
 	the Initial Developer. All Rights Reserved.
 
 	Contributor(s):
@@ -45,24 +45,15 @@
 	$language = new text;
 	$text = $language->get();
 
+//connect to the database
+	$database = database::new();
+
 //get variables used to control the order
 	$order_by = $_GET["order_by"];
 	$order = $_GET["order"];
 
 //get the contact id
-	$contact_uuid = check_str($_REQUEST["id"]);
-
-//show the content
-	echo "<table width='100%' cellpadding='0' cellspacing='0' border='0'>\n";
-	echo "	<tr>\n";
-	echo "		<td width='50%' align='left' valign='top' nowrap='nowrap'><b>".$text['title-invoices']."</b><br><br></td>\n";
-	echo "		<td width='50%' align=\"right\" valign='top'>\n";
-	if ($contact_uuid != '') {
-		echo "			<input type='button' class='btn' name='' alt='back' onclick=\"history.go(-1);\" value='Back'>\n";
-	}
-	echo "		</td>\n";
-	echo "	</tr>\n";
-	echo "</table>\n";
+	$contact_uuid = $_REQUEST["id"];
 
 //prepare to page the results
 	$sql = "SELECT count(*) as num_rows FROM v_invoices ";
@@ -72,17 +63,15 @@
 	if (strlen($contact_uuid) > 0) {
 		$sql .= "and v_invoices.contact_uuid_to = '$contact_uuid' ";
 	}
-	$prep_statement = $db->prepare($sql);
-	if ($prep_statement) {
-	$prep_statement->execute();
-		$row = $prep_statement->fetch(PDO::FETCH_ASSOC);
-		if ($row['num_rows'] > 0) {
-			$num_rows = $row['num_rows'];
-		}
-		else {
-			$num_rows = '0';
-		}
+	$parameters['domain_uuid'] = $_SESSION['domain_uuid'];
+	$row = $database->select($sql, $parameters, 'row');
+	if (!empty($row['num_rows'])) {
+		$num_rows = $row['num_rows'];
 	}
+	else {
+		$num_rows = '0';
+	}
+	unset($sql, $parameters);
 
 //prepare to page the results
 	$rows_per_page = 150;
@@ -96,9 +85,10 @@
 	$sql = "SELECT * FROM v_invoices ";
 	$sql .= "LEFT OUTER JOIN v_contacts ";
 	$sql .= "ON v_invoices.contact_uuid_to = v_contacts.contact_uuid ";
-	$sql .= "where v_invoices.domain_uuid = '$domain_uuid' ";
+	$sql .= "where v_invoices.domain_uuid = :domain_uuid ";
 	if (strlen($contact_uuid) > 0) {
-		$sql .= "and v_invoices.contact_uuid_to = '$contact_uuid' ";
+		$sql .= "and v_invoices.contact_uuid_to = :contact_uuid ";
+		$parameters['contact_uuid'] = $contact_uuid;
 	}
 	if (strlen($order_by) == 0) {
 		$sql .= "order by v_invoices.invoice_number desc ";
@@ -107,15 +97,26 @@
 		$sql .= "order by v_invoices.$order_by $order ";
 	}
 	$sql .= "limit $rows_per_page offset $offset ";
-	$prep_statement = $db->prepare(check_sql($sql));
-	$prep_statement->execute();
-	$invoices = $prep_statement->fetchAll(PDO::FETCH_NAMED);
-	unset ($prep_statement, $sql);
+	$parameters['domain_uuid'] = $_SESSION['domain_uuid'];
+	$invoices = $database->select($sql, $parameters ?? '', 'all');
+	unset($sql, $parameters);
 
 //set the row style
 	$c = 0;
 	$row_style["0"] = "row_style0";
 	$row_style["1"] = "row_style1";
+
+//show the content
+	echo "<table width='100%' cellpadding='0' cellspacing='0' border='0'>\n";
+	echo "	<tr>\n";
+	echo "		<td width='50%' align='left' valign='top' nowrap='nowrap'><b>".$text['title-invoices']."</b><br><br></td>\n";
+	echo "		<td width='50%' align=\"right\" valign='top'>\n";
+	if ($contact_uuid != '') {
+		echo "			<input type='button' class='btn' name='' alt='back' onclick=\"history.go(-1);\" value='Back'>\n";
+	}
+	echo "		</td>\n";
+	echo "	</tr>\n";
+	echo "</table>\n";
 
 //show the invoices
 	echo "<table class='tr_hover' width='100%' border='0' cellpadding='0' cellspacing='0'>\n";

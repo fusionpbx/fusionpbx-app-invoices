@@ -1,7 +1,7 @@
 <?php
 /* $Id$ */
 /*
-	Copyright (C) 2008-2013 Mark J Crane
+	Copyright (C) 2008-2025 Mark J Crane
 	All rights reserved.
 
 	Redistribution and use in source and binary forms, with or without
@@ -38,6 +38,9 @@
 		echo "access denied";
 		exit;
 	}
+
+//connect to the database
+	$database = database::new();
 
 //get variables used to control the order
 	$order_by = $_GET["order_by"];
@@ -82,7 +85,7 @@
 	$parameters['domain_uuid'] = $_SESSION['domain_uuid'];
 	$parameters['invoice_uuid'] = $invoice_uuid;
 	$result = $database->select($sql, $parameters, 'all');
-	unset ($prep_statement, $sql);
+	unset ($parameters, $sql);
 
 //set the row style
 	$c = 0;
